@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Builder</title>
+  <script src="https://editor.unlayer.com/embed.js"></script>
+  <style>
+    html, body, #editor { height: 90%; margin: 0; }
+    #controls { padding: 10px; background: #eee; }
+  </style>
+</head>
+<body>
+
+  <div id="controls">
+    <button onclick="saveEmail()">💾 Save</button>
+    <input id="emailTo" type="email" placeholder="Recipient Email" />
+    <input id="emailSub" type="text" placeholder="Subject" />
+    <button onclick="sendEmail()">📧 Send</button>
+  </div>
+
+  <div id="editor"></div>
+
+  <script>
+    unlayer.init({
+      id: 'editor',
+      displayMode: 'email',
+    });
+
+    function saveEmail() {
+      unlayer.exportHtml(data => {
+        fetch('/api/save-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(res => res.json()).then(res => {
+          alert('Email saved with ID: ' + res.id);
+        });
+      });
+    }
+
+    function sendEmail() {
+      const to = document.getElementById('emailTo').value;
+      const subject = document.getElementById('emailSub').value;
+
+      if (!to || !subject) return alert('Please enter recipient and subject');
+
+      unlayer.exportHtml(data => {
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to, subject, html: data.html })
+        }).then(res => res.json()).then(res => {
+          alert(res.message || 'Email sent');
+        });
+      });
+    }
+  </script>
+</body>
+</html>
